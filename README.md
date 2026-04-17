@@ -78,8 +78,8 @@ Use the Admin page in the web app (`/admin/users`) to add/update/delete other us
 ```
 ## JSON endpoints
 ```
-- `/rentals/api/active-rentals`
-- `/rentals/api/equipment/available`
+- /rentals/api/active-rentals
+- /rentals/api/equipment/available
 ```
 
 
