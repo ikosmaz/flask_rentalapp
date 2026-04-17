@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">{{ 'Edit customer' if customer else 'Add customer' }}</h1>
+
+<form method="post" class="row g-3">
+  <div class="col-12 col-md-3">
+    <label class="form-label">Customer ID</label>
+    <input class="form-control" type="number" name="customer_id" value="{{ customer.customer_id if customer else '' }}" {{ 'readonly' if customer else 'required' }}>
+  </div>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Name</label>
+    <input class="form-control" type="text" name="name" value="{{ customer.name if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-3">
+    <label class="form-label">Type</label>
+    <select class="form-select" name="type" required>
+      <option value="Privat" {% if customer and customer.type == 'Privat' %}selected{% endif %}>Privat</option>
+      <option value="Bedrift" {% if customer and customer.type == 'Bedrift' %}selected{% endif %}>Bedrift</option>
+    </select>
+  </div>
+
+  <div class="col-12 col-md-6">
+    <label class="form-label">Email</label>
+    <input class="form-control" type="email" name="email" value="{{ customer.email if customer and customer.email else '' }}">
+  </div>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Phones (comma separated)</label>
+    <input class="form-control" type="text" name="phones" value="{{ phones if phones else '' }}">
+  </div>
+
+  <div class="col-12"><hr></div>
+  <div class="col-12"><h2 class="h5">Delivery address</h2></div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Street</label>
+    <input class="form-control" id="delivery_street" name="delivery_street" value="{{ customer.delivery_address.street if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">No.</label>
+    <input class="form-control" id="delivery_gatenr" name="delivery_gatenr" value="{{ customer.delivery_address.gatenr if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Postnr</label>
+    <input class="form-control" id="delivery_postnr" name="delivery_postnr" value="{{ customer.delivery_address.city_postnr if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-4">
+    <label class="form-label">City</label>
+    <input class="form-control" id="delivery_city" name="delivery_city" value="{{ customer.delivery_address.city_ref.city if customer and customer.delivery_address.city_ref else '' }}">
+  </div>
+
+  <div class="col-12">
+    <h2 class="h5 mb-1">Invoice address</h2>
+  </div>
+  <div class="col-12">
+    <div class="form-check mb-1">
+      <input class="form-check-input" type="checkbox" id="copy_delivery_to_invoice">
+      <label class="form-check-label" for="copy_delivery_to_invoice">
+        Same as delivery address
+      </label>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Street</label>
+    <input class="form-control" id="invoice_street" name="invoice_street" value="{{ customer.invoice_address.street if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">No.</label>
+    <input class="form-control" id="invoice_gatenr" name="invoice_gatenr" value="{{ customer.invoice_address.gatenr if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Postnr</label>
+    <input class="form-control" id="invoice_postnr" name="invoice_postnr" value="{{ customer.invoice_address.city_postnr if customer else '' }}" required>
+  </div>
+  <div class="col-12 col-md-4">
+    <label class="form-label">City</label>
+    <input class="form-control" id="invoice_city" name="invoice_city" value="{{ customer.invoice_address.city_ref.city if customer and customer.invoice_address.city_ref else '' }}">
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    (() => {
+      const toggle = document.getElementById("copy_delivery_to_invoice");
+      if (!toggle) return;
+
+      const deliveryFields = [
+        document.getElementById("delivery_street"),
+        document.getElementById("delivery_gatenr"),
+        document.getElementById("delivery_postnr"),
+        document.getElementById("delivery_city"),
+      ];
+      const invoiceFields = [
+        document.getElementById("invoice_street"),
+        document.getElementById("invoice_gatenr"),
+        document.getElementById("invoice_postnr"),
+        document.getElementById("invoice_city"),
+      ];
+
+      const copyValues = () => {
+        invoiceFields.forEach((invoiceField, index) => {
+          invoiceField.value = deliveryFields[index].value;
+        });
+      };
+
+      const setInvoiceReadonly = (readonly) => {
+        invoiceFields.forEach((field) => {
+          field.readOnly = readonly;
+          field.classList.toggle("bg-light", readonly);
+        });
+      };
+
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) {
+          copyValues();
+          setInvoiceReadonly(true);
+          return;
+        }
+        setInvoiceReadonly(false);
+      });
+
+      deliveryFields.forEach((field) => {
+        field.addEventListener("input", () => {
+          if (toggle.checked) copyValues();
+        });
+      });
+    })();
+  </script>
+{% endblock %}

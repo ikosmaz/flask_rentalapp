@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">Statistics</h1>
+
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5">Completed rentals in the period</h2>
+        <form class="row g-2 align-items-end" method="get">
+          <div class="col-12 col-md-4">
+            <label class="form-label">From</label>
+            <input class="form-control" type="date" name="date_from" value="{{ date_from }}">
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label">To</label>
+            <input class="form-control" type="date" name="date_to" value="{{ date_to }}">
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-outline-secondary" type="submit">Apply</button>
+          </div>
+        </form>
+        <p class="display-6 mt-3 mb-0 stats-completed-count"><b>{{ completed_count }}</b></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card h-100 border-success">
+      <div class="card-body">
+        <h2 class="h5">Top 3 most rented equipments</h2>
+        {% if top_rented_equipment %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr><th>No.</th><th>Model</th><th class="text-center">Rentals</th></tr>
+            </thead>
+            <tbody>
+              {% for row in top_rented_equipment %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ row.type }} {{ row.brand }} {{ row.model }}</td>
+                <td class="text-center"><span class="badge text-bg-success">{{ row.rentals }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No rental data.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-12 col-xl-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 d-flex align-items-center justify-content-between">
+          <span>My active rentals</span>
+          <span class="badge text-bg-primary">{{ active_rentals_me_count }}</span>
+        </h2>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead><tr><th>No.</th><th>Customer</th><th>Model</th><th>Instance</th><th>Rent date</th></tr></thead>
+            <tbody>
+              {% for r in active_rentals_me %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ r.customer.name if r.customer else r.customer_id }}</td>
+                <td>
+                  {% if r.equipment_instance and r.equipment_instance.model_ref %}
+                  {{ r.equipment_instance.model_ref.type }} {{ r.equipment_instance.model_ref.brand }} {{ r.equipment_instance.model_ref.model }}
+                  {% else %}
+                  {{ r.model_id }}
+                  {% endif %}
+                </td>
+                <td>{{ r.instans_nr }}</td>
+                <td>{{ r.rent_date | date_dmy }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-muted">No active rentals for this employee.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 d-flex align-items-center justify-content-between">
+          <span>Active rentals ( all )</span>
+          <span class="badge text-bg-primary">{{ active_rentals_all_count }}</span>
+        </h2>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead><tr><th>No.</th><th>Employee</th><th>Customer</th><th>Model</th><th>Instance</th><th>Rent date</th></tr></thead>
+            <tbody>
+              {% for r in active_rentals_all %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ r.employee.name if r.employee else r.employee_id }}</td>
+                <td>{{ r.customer.name if r.customer else r.customer_id }}</td>
+                <td>
+                  {% if r.equipment_instance and r.equipment_instance.model_ref %}
+                  {{ r.equipment_instance.model_ref.type }} {{ r.equipment_instance.model_ref.brand }} {{ r.equipment_instance.model_ref.model }}
+                  {% else %}
+                  {{ r.model_id }}
+                  {% endif %}
+                </td>
+                <td>{{ r.instans_nr }}</td>
+                <td>{{ r.rent_date | date_dmy }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-muted">No active rentals.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 d-flex align-items-center justify-content-between">
+          <span>Customer list</span>
+          <span class="badge text-bg-primary">{{ customer_count }}</span>
+        </h2>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Email</th></tr></thead>
+            <tbody>
+              {% for c in customer_list %}
+              <tr><td>{{ c.customer_id }}</td><td>{{ c.name }}</td><td>{{ c.type }}</td><td>{{ c.email or '-' }}</td></tr>
+              {% else %}
+              <tr><td colspan="4" class="text-muted">No customers.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5">Income per equipment</h2>
+        {% if income_rows %}
+        <div class="mb-3" style="height: 320px;">
+          <canvas id="incomePieChart" aria-label="Income per equipment pie chart"></canvas>
+        </div>
+        {% endif %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead><tr><th>Model ID</th><th>Equipment</th><th>Income</th></tr></thead>
+            <tbody>
+              {% for row in income_rows %}
+              <tr>
+                <td>{{ row.model_id }}</td>
+                <td>{{ row.type }} {{ row.brand }} {{ row.model }}</td>
+                <td>{{ '%.2f'|format(row.income) }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="3" class="text-muted">No income data.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% if income_rows %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script>
+    (() => {
+      const canvas = document.getElementById("incomePieChart");
+      if (!canvas) return;
+
+      const labels = {{ income_chart_labels | tojson }};
+      const values = {{ income_chart_values | tojson }};
+      const totalIncome = values.reduce((sum, value) => sum + Number(value || 0), 0);
+      if (!values.length || totalIncome <= 0) return;
+
+      const colors = [
+        "#0d6efd", "#198754", "#dc3545", "#fd7e14", "#6f42c1", "#20c997",
+        "#d63384", "#0dcaf0", "#ffc107", "#6610f2", "#6c757d", "#1982c4"
+      ];
+
+      new Chart(canvas, {
+        type: "pie",
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: labels.map((_, index) => colors[index % colors.length]),
+            borderColor: "#ffffff",
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { boxWidth: 14 },
+            },
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const value = Number(context.raw || 0);
+                  const pct = totalIncome > 0 ? (value / totalIncome) * 100 : 0;
+                  return `${context.label}: ${value.toFixed(2)} (${pct.toFixed(1)}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    })();
+  </script>
+  {% endif %}
+{% endblock %}

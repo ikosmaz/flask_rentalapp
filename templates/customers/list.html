@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Customers</h1>
+  <a href="{{ url_for('customers.create_customer') }}" class="btn btn-primary">Add customer</a>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-12 col-md-6">
+    <input class="form-control" type="search" name="q" placeholder="Search name or email" value="{{ search }}">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead>
+      <tr>
+        <th>ID</th><th>Name</th><th>Type</th><th>Email</th><th>Phone numbers</th><th>Invoice Address</th><th>Delivery Address</th><th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in customers %}
+      <tr>
+        <td>{{ c.customer_id }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ c.type }}</td>
+        <td>{{ c.email or '-' }}</td>
+        <td>{{ phone_display.get(c.customer_id, '-') }}</td>
+        <td>
+          {{ c.invoice_address.street }} {{ c.invoice_address.gatenr }},
+          {{ c.invoice_address.city_postnr }}
+          {% if c.invoice_address.city_ref %}{{ c.invoice_address.city_ref.city }}{% endif %}
+        </td>
+        <td>
+          {{ c.delivery_address.street }} {{ c.delivery_address.gatenr }},
+          {{ c.delivery_address.city_postnr }}
+          {% if c.delivery_address.city_ref %}{{ c.delivery_address.city_ref.city }}{% endif %}
+        </td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('customers.edit_customer', customer_id=c.customer_id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('customers.delete_customer', customer_id=c.customer_id) }}" onsubmit="return confirm('Delete this customer?');">
+            <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-muted">No customers found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

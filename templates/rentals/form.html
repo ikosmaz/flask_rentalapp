@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">Register rental</h1>
+
+<form method="post" class="row g-3">
+  <div class="col-12 col-md-6">
+    <label class="form-label">Customer</label>
+    <select class="form-select" name="customer_id" required>
+      <option value="" disabled selected>Select customer</option>
+      {% for c in customers %}
+      <option value="{{ c.customer_id }}">{{ c.customer_id }} - {{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-12 col-md-6">
+    <label class="form-label">Available equipments instance</label>
+    <select class="form-select" id="instanceSelect" required>
+      <option value="" disabled selected>Select instance</option>
+      {% for i in available_instances %}
+      <option value="{{ i.model_id }}|{{ i.instans_nr }}">{{ i.model_ref.type }} {{ i.model_ref.brand }} {{ i.model_ref.model }} (Model {{ i.model_id }}, Instance {{ i.instans_nr }})</option>
+      {% endfor %}
+    </select>
+    <input type="hidden" name="model_id" id="modelIdInput" required>
+    <input type="hidden" name="instans_nr" id="instansNrInput" required>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <label class="form-label">Rent date</label>
+    <input class="form-control" type="date" name="rent_date" required>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <label class="form-label">Payment method</label>
+    <select class="form-select" name="payment_method" required>
+      {% for method in payment_methods %}
+      <option value="{{ method }}">{{ method }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-12 col-md-3 d-flex align-items-end">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="deliver_to_customer" id="deliverToCustomer">
+      <label class="form-check-label" for="deliverToCustomer">Deliver to customer</label>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <label class="form-label">Delivery cost</label>
+    <input class="form-control" type="number" step="0.01" min="0" name="delivery_cost" value="0">
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Register</button>
+    <a href="{{ url_for('rentals.list_rentals') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const instanceSelect = document.getElementById('instanceSelect');
+  const modelIdInput = document.getElementById('modelIdInput');
+  const instansNrInput = document.getElementById('instansNrInput');
+
+  instanceSelect.addEventListener('change', function() {
+    const parts = this.value.split('|');
+    modelIdInput.value = parts[0] || '';
+    instansNrInput.value = parts[1] || '';
+  });
+</script>
+{% endblock %}

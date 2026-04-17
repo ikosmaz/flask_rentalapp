@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block main_container_class %}container pt-4 pb-0{% endblock %}
+
+{% block content %}
+<div class="dashboard-note-wrap">
+  <div
+    id="overdueStickyNote"
+    class="overdue-sticky-note {% if overdue_count > 0 %}is-alert{% else %}is-ok{% endif %}"
+    role="button"
+    tabindex="0"
+    aria-label="Dismiss overdue rentals note"
+    title="Click to dismiss"
+  >
+    <p class="overdue-note-label mb-1">Overdue Rentals</p>
+    <p class="overdue-note-count mb-1">{{ overdue_count }}</p>
+    {% if overdue_count > 0 %}
+    <p class="overdue-note-text mb-0">Overdue more than {{ due_period_days }} days.</p>
+    {% else %}
+    <p class="overdue-note-text mb-0">All rentals are within the due period.</p>
+    {% endif %}
+    <p class="overdue-note-dismiss mb-0 mt-2">Click to dismiss</p>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Dashboard</h1>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <a href="{{ url_for('rentals.list_rentals') }}" class="card stat-card h-100 text-reset text-decoration-none">
+      <div class="card-body text-center">
+        <h2 class="h6 text-muted">Active Rentals</h2>
+        <p class="display-6 fw-bold mb-0">{{ active_rentals }}</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-4">
+    <a href="{{ url_for('equipment.list_equipment') }}" class="card stat-card stat-card-available h-100 text-reset text-decoration-none">
+      <div class="card-body text-center">
+        <h2 class="h6 text-muted">Available Equipments</h2>
+        <p class="display-6 fw-bold mb-0">{{ available_equipment }}</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-4">
+    <a href="#overdueRentalsTable" class="card stat-card stat-card-overdue h-100 text-reset text-decoration-none">
+      <div class="card-body text-center">
+        <h2 class="h6 text-muted">Overdue Rentals</h2>
+        <p class="display-6 fw-bold mb-0 {% if overdue_count > 0 %}text-danger{% else %}text-success{% endif %}">
+          {{ overdue_count }}
+        </p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5">Rental Status</h2>
+    <canvas id="statusChart" height="90"></canvas>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5">Last 5 Rentals</h2>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>No.</th><th>Customer</th><th>Model</th><th>Instance</th><th>Rent Date</th><th>Return Date</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in latest_rentals %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ r.customer.name if r.customer else r.customer_id }}</td>
+            <td>
+              {% if r.equipment_instance and r.equipment_instance.model_ref %}
+                {{ r.equipment_instance.model_ref.type }}, {{ r.equipment_instance.model_ref.brand }} {{ r.equipment_instance.model_ref.model }}
+              {% else %}
+                {{ r.model_id }}
+              {% endif %}
+            </td>
+            <td>{{ r.instans_nr }}</td>
+            <td>{{ r.rent_date | date_dmy }}</td>
+            <td>{{ r.return_date | date_dmy if r.return_date else 'Not delivered' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted">No rentals found.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="overdueRentalsTable">
+  <div class="card-body">
+    <h2 class="h5">Overdue Rentals (more than {{ due_period_days }} days)</h2>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>No.</th><th>Customer</th><th>Model</th><th>Instance</th><th>Rent Date</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in overdue_rentals %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ r.customer.name if r.customer else r.customer_id }}</td>
+            <td>
+              {% if r.equipment_instance and r.equipment_instance.model_ref %}
+                {{ r.equipment_instance.model_ref.type }} {{ r.equipment_instance.model_ref.brand }} {{ r.equipment_instance.model_ref.model }}
+              {% else %}
+                {{ r.model_id }}
+              {% endif %}
+            </td>
+            <td>{{ r.instans_nr }}</td>
+            <td>{{ r.rent_date | date_dmy }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted">No overdue rentals.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<footer class="dashboard-fixed-footer">
+<p class="footer-text">Here, can be added some links or explanations about the company.
+                  <br> Then height should be changed on css file accordingly.</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+  const overdueStickyNote = document.getElementById('overdueStickyNote');
+  const overdueCount = {{ overdue_count | tojson }};
+  const warningSoundUrl = {{ url_for('static', filename='audio/overdue-warning.mp3') | tojson }};
+  if (overdueStickyNote) {
+    const stickyUser = {{ current_user.username | tojson }};
+    const today = new Date().toISOString().slice(0, 10);
+    const stickySeenKey = `rentalapp_overdue_note_seen_${stickyUser}_${today}`;
+    let isStickyHidden = false;
+
+    try {
+      if (localStorage.getItem(stickySeenKey) === '1') {
+        overdueStickyNote.classList.add('is-hidden');
+        isStickyHidden = true;
+      }
+    } catch (error) {
+      // Ignore localStorage failures and keep default behavior.
+    }
+
+    const playWarningSound = () => {
+      if (overdueCount <= 0 || isStickyHidden) return;
+
+      const warningAudio = new Audio(warningSoundUrl);
+      warningAudio.preload = 'auto';
+
+      warningAudio.play().catch(() => {
+        // Browser autoplay may be blocked until user interaction.
+        const tryPlayAfterInteraction = () => {
+          warningAudio.play().catch(() => {});
+        };
+        document.addEventListener('click', tryPlayAfterInteraction, { once: true });
+        document.addEventListener('keydown', tryPlayAfterInteraction, { once: true });
+      });
+    };
+
+    playWarningSound();
+
+    const dismissStickyNote = () => {
+      overdueStickyNote.classList.add('is-hidden');
+      isStickyHidden = true;
+      try {
+        localStorage.setItem(stickySeenKey, '1');
+      } catch (error) {
+        // Ignore localStorage failures.
+      }
+    };
+
+    overdueStickyNote.addEventListener('click', dismissStickyNote);
+    overdueStickyNote.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        dismissStickyNote();
+      }
+    });
+  }
+
+  const chartData = {{ chart_data | tojson }};
+  new Chart(document.getElementById('statusChart'), {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        data: chartData.values,
+        backgroundColor: [
+          'rgba(13, 110, 253, 0.65)',
+          'rgba(25, 135, 84, 0.65)',
+          'rgba(220, 53, 69, 0.65)'
+        ],
+        borderColor: [
+          'rgba(13, 110, 253, 1)',
+          'rgba(25, 135, 84, 1)',
+          'rgba(220, 53, 69, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
+{% endblock %}

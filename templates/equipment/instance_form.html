@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">Edit equipment instance</h1>
+
+<form method="post" class="row g-3">
+  <div class="col-12 col-md-3">
+    <label class="form-label">Model ID</label>
+    <input class="form-control" type="text" value="{{ instance.model_id }}" readonly>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <label class="form-label">Instance no.</label>
+    <input class="form-control" type="text" value="{{ instance.instans_nr }}" readonly>
+  </div>
+
+  <div class="col-12 col-md-6">
+    <label class="form-label">Equipments</label>
+    <input class="form-control" type="text" value="{{ instance.model_ref.type }} {{ instance.model_ref.brand }} {{ instance.model_ref.model }}" readonly>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Last maintenance</label>
+    <input class="form-control" type="date" name="last_maintenance" value="{{ instance.last_maintenance.isoformat() if instance.last_maintenance else '' }}">
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Next maintenance</label>
+    <input class="form-control" type="date" name="next_maintenance" value="{{ instance.next_maintenance.isoformat() if instance.next_maintenance else '' }}">
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

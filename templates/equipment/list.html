@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Equipments</h1>
+  {% if is_admin %}
+  <a href="{{ url_for('equipment.create_equipment') }}" class="btn btn-primary">Add equipment</a>
+  {% endif %}
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-12 col-md-3">
+    <select class="form-select" name="type">
+      <option value="">All types</option>
+      {% for t in distinct_types %}
+      <option value="{{ t }}" {% if t == type_filter %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-md-3">
+    <select class="form-select" name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}
+      <option value="{{ c.category }}" {% if c.category == category_filter %}selected{% endif %}>{{ c.category }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-md-4">
+    <input class="form-control" type="search" name="q" placeholder="Search in equipments (Type, Brand and Model)" value="{{ search }}">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Model ID</th><th>Type</th><th>Brand</th><th>Model</th><th>Category</th><th>Daily Price</th><th>Total</th><th>In Stock</th><th>Status</th><th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in equipment %}
+      <tr>
+        <td>{{ e.model_id }}</td>
+        <td>{{ e.type }}</td>
+        <td>{{ e.brand }}</td>
+        <td>{{ e.model }}</td>
+        <td>{{ e.category_ref.category }}</td>
+        <td>{{ e.daily_price }}</td>
+        <td>{{ e.total_quantity }}</td>
+        <td>{{ e.quantity_in_stock }}</td>
+        <td>
+          {% if e.quantity_in_stock > 0 %}
+            <span class="badge text-bg-success">Available</span>
+          {% else %}
+            <span class="badge text-bg-danger">Rented</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          {% if is_admin %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('equipment.edit_equipment', model_id=e.model_id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('equipment.delete_equipment', model_id=e.model_id) }}" onsubmit="return confirm('Delete this equipment model?');">
+            <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+          </form>
+          {% else %}
+          <span class="text-muted small">Read only</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" class="text-muted">No equipment found.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="table-light fw-semibold">
+        <td colspan="6" class="text-end">Totals:</td>
+        <td>{{ equipment_total_quantity }}</td>
+        <td>{{ equipment_total_in_stock }}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h5 mb-0">Equipment instances</h2>
+    <a href="{{ url_for('equipment.create_instance') }}" class="btn btn-sm btn-primary">Add instance</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Model ID</th>
+          <th>Instance</th>
+          <th>Last maintenance</th>
+          <th>Next maintenance</th>
+          <th class="text-end no-sort no-resize action-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in instances %}
+        <tr>
+          <td>{{ i.model_id }}</td>
+          <td>{{ i.instans_nr }}</td>
+          <td>{{ i.last_maintenance | date_dmy if i.last_maintenance else '-' }}</td>
+          <td>{{ i.next_maintenance | date_dmy if i.next_maintenance else '-' }}</td>
+          <td class="text-end text-nowrap action-col">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('equipment.edit_instance', model_id=i.model_id, instans_nr=i.instans_nr) }}">Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-muted">No equipment instances found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

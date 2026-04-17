@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% set form_data = form_data or {} %}
+<h1 class="h3 mb-3">{{ 'Edit user' if user else 'Add user' }}</h1>
+
+<form method="post" class="row g-3">
+  {% if not user %}
+  <div class="col-12 col-md-6">
+    <label class="form-label">Employee</label>
+    <select class="form-select" name="employee_id" required>
+      <option value="">Select employee</option>
+      {% for emp in available_employees %}
+      <option value="{{ emp.employee_id }}" {% if form_data.get('employee_id') == (emp.employee_id | string) %}selected{% endif %}>
+        {{ emp.employee_id }} - {{ emp.name }}{% if emp.phone %} ({{ emp.phone }}){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    {% if not available_employees %}
+    <div class="form-text text-danger">All employees already have user accounts. Add an employee first.</div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="col-12 col-md-6">
+    <label class="form-label">Employee</label>
+    <input
+      class="form-control"
+      type="text"
+      value="{{ user.employee_id }} - {{ user.employee.name if user.employee else 'Unknown employee' }}"
+      readonly
+    >
+  </div>
+  {% endif %}
+
+  <div class="col-12 col-md-6">
+    <label class="form-label">Username</label>
+    <input
+      class="form-control"
+      type="text"
+      name="username"
+      value="{{ user.username if user else form_data.get('username', '') }}"
+      required
+    >
+  </div>
+
+  <div class="col-12 col-md-6">
+    <label class="form-label">Password {% if user %}(leave empty to keep current){% endif %}</label>
+    <input class="form-control" type="password" name="password" {{ '' if user else 'required' }}>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Role</label>
+    <select class="form-select" name="role" required>
+      <option value="user" {% if (user and user.role == 'user') or (not user and form_data.get('role', 'user') == 'user') %}selected{% endif %}>user</option>
+      <option value="admin" {% if (user and user.role == 'admin') or (not user and form_data.get('role') == 'admin') %}selected{% endif %}>admin</option>
+    </select>
+  </div>
+
+  <div class="col-12 col-md-4 d-flex align-items-end">
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="is_active"
+        name="is_active"
+        {% if (user and user.is_active) or (not user and form_data.get('is_active', True)) %}checked{% endif %}
+      >
+      <label class="form-check-label" for="is_active">Active account</label>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit" {% if not user and not available_employees %}disabled{% endif %}>Save</button>
+    <a href="{{ url_for('admin.list_users') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

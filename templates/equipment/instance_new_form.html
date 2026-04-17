@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">Add equipment instance</h1>
+
+<form method="post" class="row g-3">
+  <div class="col-12 col-md-6">
+    <label class="form-label">Model</label>
+    <select class="form-select" name="model_id" id="modelSelect" required>
+      <option value="" disabled {% if not selected_model_id %}selected{% endif %}>Select model</option>
+      {% for m in models %}
+      <option value="{{ m.model_id }}" {% if selected_model_id and selected_model_id|int == m.model_id %}selected{% endif %}>
+        {{ m.model_id }} - {{ m.type }} {{ m.brand }} {{ m.model }} (total {{ m.total_quantity }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <label class="form-label">Instance no.</label>
+    <input class="form-control" type="number" min="1" name="instans_nr" id="instanceNoInput" value="{{ instans_nr_value }}">
+    <div class="form-text" id="instanceNoHint"></div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Last maintenance</label>
+    <input class="form-control" type="date" name="last_maintenance">
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Next maintenance</label>
+    <input class="form-control" type="date" name="next_maintenance">
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Create instance</button>
+    <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const modelSelect = document.getElementById('modelSelect');
+  const instanceNoInput = document.getElementById('instanceNoInput');
+  const instanceNoHint = document.getElementById('instanceNoHint');
+  const nextMap = {{ next_instance_map | tojson }};
+
+  let previousSuggested = null;
+
+  const applyNextSuggestion = (force = false) => {
+    const modelId = modelSelect ? modelSelect.value : '';
+    const suggested = modelId && nextMap[modelId] ? String(nextMap[modelId]) : '';
+
+    if (instanceNoHint) {
+      instanceNoHint.textContent = suggested
+        ? `Suggested next instance number: ${suggested}`
+        : '';
+    }
+
+    if (instanceNoInput && (force || !instanceNoInput.value || instanceNoInput.value === previousSuggested)) {
+      instanceNoInput.value = suggested;
+    }
+
+    previousSuggested = suggested;
+  };
+
+  if (modelSelect) {
+    modelSelect.addEventListener('change', () => applyNextSuggestion(true));
+  }
+
+  applyNextSuggestion(false);
+</script>
+{% endblock %}

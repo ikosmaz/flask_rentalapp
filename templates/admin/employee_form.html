@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h3 mb-3">{{ 'Edit employee' if employee else 'Add employee' }}</h1>
+
+<form method="post" class="row g-3">
+  <div class="col-12 col-md-6">
+    <label class="form-label">Employee full name</label>
+    <input class="form-control" type="text" name="employee_name" value="{{ employee.name if employee else '' }}" required>
+  </div>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Employee phone</label>
+    <input class="form-control" type="text" name="employee_phone" value="{{ employee.phone if employee and employee.phone else '' }}">
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a href="{{ url_for('admin.list_users') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
